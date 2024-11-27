@@ -1,0 +1,52 @@
+import tkinter as tk
+from scapy.all import sniff, IP, TCP, UDP, Raw, get_if_list
+import logging
+import threading
+
+# Configure logging
+logging.basicConfig(filename='packet_sniffer.log', level=logging.INFO, format='%(asctime)s - %(message)s')
+
+class PacketSnifferApp:
+    def __init__(self, master):
+        self.master = master
+        self.master.title("Packet Sniffer")
+        self.is_sniffing = False
+        self.filter_protocol = 'TCP'  # Default filter is TCP
+        self.filter_ip = None  # No IP filter by default
+
+        # Start/Stop Sniffing Buttons
+        self.start_button = tk.Button(master, text="Start Sniffing", command=self.start_sniffing)
+        self.start_button.grid(row=0, column=0, padx=10, pady=10)
+
+        self.stop_button = tk.Button(master, text="Stop Sniffing", command=self.stop_sniffing, state=tk.DISABLED)
+        self.stop_button.grid(row=0, column=1, padx=10, pady=10)
+
+        # Protocol Filter Dropdown
+        self.protocol_label = tk.Label(master, text="Select Protocol:")
+        self.protocol_label.grid(row=1, column=0, pady=5, sticky="e")
+        self.protocol_var = tk.StringVar(master)
+        self.protocol_var.set("TCP")
+        self.protocol_menu = tk.OptionMenu(master, self.protocol_var, "TCP", "UDP", "HTTP")
+        self.protocol_menu.grid(row=1, column=1, pady=5)
+
+        # IP Filter Entry
+        self.ip_label = tk.Label(master, text="Filter by IP (Optional):")
+        self.ip_label.grid(row=2, column=0, pady=5, sticky="e")
+        self.ip_entry = tk.Entry(master)
+        self.ip_entry.grid(row=2, column=1, pady=5)
+
+        # Apply Filters Button
+        self.apply_filters_button = tk.Button(master, text="Apply Filters", command=self.apply_filters)
+        self.apply_filters_button.grid(row=3, column=0, columnspan=2, pady=10)
+
+        # Output Textbox
+        self.output_text = tk.Text(master, height=15, width=70)
+        self.output_text.grid(row=4, column=0, columnspan=2, padx=10, pady=10)
+
+        # Save Output Button
+        self.save_button = tk.Button(master, text="Save Output", command=self.save_output)
+        self.save_button.grid(row=6, column=0, columnspan=2, pady=10)
+
+        # Interface Selection Dropdown
+        self.create_interface_dropdown()
+        
