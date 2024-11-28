@@ -50,3 +50,45 @@ class PacketSnifferApp:
         # Interface Selection Dropdown
         self.create_interface_dropdown()
         
+#Ammar
+
+def create_interface_dropdown(self):
+        """Creates a dropdown to select the network interface."""
+        interfaces = self.get_active_interface()
+        self.interface_label = tk.Label(self.master, text="Select Interface:")
+        self.interface_label.grid(row=5, column=0, pady=5, sticky="e")
+        self.interface_var = tk.StringVar(self.master)
+        self.interface_var.set(interfaces[0] if interfaces else "None")
+        self.interface_menu = tk.OptionMenu(self.master, self.interface_var, *interfaces)
+        self.interface_menu.grid(row=5, column=1, pady=5)
+
+    def apply_filters(self):
+        """Applies selected filters for protocol and IP."""
+        self.filter_protocol = self.protocol_var.get()
+        self.filter_ip = self.ip_entry.get() if self.ip_entry.get() else None
+        self.output_text.insert(tk.END, f"Filters applied: Protocol={self.filter_protocol}, IP={self.filter_ip}\n")
+        self.output_text.see(tk.END)
+
+    def packet_callback(self, packet):
+        """Handles incoming packets and updates the UI."""
+        
+        if IP in packet:
+            ip_layer = packet[IP]
+            if self.filter_ip and ip_layer.src != self.filter_ip and ip_layer.dst != self.filter_ip:
+                return  # Skip packet if it doesn't match the IP filter
+
+            # Process the packet based on the selected protocol
+            if self.filter_protocol == 'TCP' and TCP in packet:
+                packet_info = self.process_packet(ip_layer, packet[TCP])
+            elif self.filter_protocol == 'UDP' and UDP in packet:
+                packet_info = self.process_packet(ip_layer, packet[UDP])
+            elif self.filter_protocol == 'HTTP' and Raw in packet:
+                packet_info = self.process_http_packet(ip_layer, packet)
+
+            if packet_info:
+                self.output_text.insert(tk.END, packet_info)
+                self.output_text.see(tk.END)  # Scroll to the end
+    
+    def process_packet(self, ip_layer, transport_layer):
+        """Process non-HTTP packets (TCP, UDP)."""
+        return f"Source: {ip_layer.src}, Destination: {ip_layer.dst}, Protocol: {transport_layer._class.name_}, Size: {len(transport_layer)}\n"
