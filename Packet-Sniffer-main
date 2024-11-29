@@ -140,3 +140,43 @@ def create_interface_dropdown(self):
             self.output_text.insert(tk.END, "Output saved to sniffed_packets.txt\n")
         except Exception as e:
             self.output_text.insert(tk.END, f"Error saving output: {str(e)}\n")
+
+def start_sniffing(self):
+        """Starts sniffing packets in a new thread."""
+        self.selected_interface = self.interface_var.get()
+        if self.selected_interface:
+            self.is_sniffing = True
+            self.start_button.config(state=tk.DISABLED)
+            self.stop_button.config(state=tk.NORMAL)
+            self.output_text.delete(1.0, tk.END)  # Clear previous output
+            threading.Thread(target=self.sniff_packets, daemon=True).start()
+        else:
+            self.output_text.insert(tk.END, "No active network interface found!\n")
+
+    def stop_sniffing(self):
+        """Stops sniffing and disables the stop button."""
+        self.is_sniffing = False
+        self.start_button.config(state=tk.NORMAL)
+        self.stop_button.config(state=tk.DISABLED)
+
+    def sniff_packets(self):
+        """Uses Scapy to sniff packets from the selected interface."""
+        try:
+            self.output_text.insert(tk.END, f"Sniffing packets on interface: {self.selected_interface}\n")
+            self.output_text.see(tk.END)  # Scroll to the end
+            while self.is_sniffing:
+                sniff(iface=self.selected_interface, prn=self.packet_callback, store=0, timeout=1)  # Add timeout to prevent blocking
+        except Exception as e:
+            self.output_text.insert(tk.END, f"Error occurred while sniffing: {str(e)}\n")
+
+    def get_active_interface(self):
+        """Finds the active network interface."""
+        interfaces = get_if_list()
+        if not interfaces:
+            self.output_text.insert(tk.END, "No network interfaces found!\n")        
+        return interfaces
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = PacketSnifferApp(root)
+    root.mainloop()
