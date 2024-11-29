@@ -49,8 +49,6 @@ class PacketSnifferApp:
 
         # Interface Selection Dropdown
         self.create_interface_dropdown()
-        
-#Ammar
 
 def create_interface_dropdown(self):
         """Creates a dropdown to select the network interface."""
@@ -92,3 +90,53 @@ def create_interface_dropdown(self):
     def process_packet(self, ip_layer, transport_layer):
         """Process non-HTTP packets (TCP, UDP)."""
         return f"Source: {ip_layer.src}, Destination: {ip_layer.dst}, Protocol: {transport_layer._class.name_}, Size: {len(transport_layer)}\n"
+
+ def process_http_packet(self, ip_layer, packet):
+        """Process HTTP requests."""
+        payload = packet[Raw].load.decode(errors='ignore')
+
+        if "GET" in payload or "POST" in payload:
+            request_line = payload.splitlines()[0]
+            url_path = self.extract_url(request_line)
+
+            # Extract Host header
+            host = self.extract_host_header(payload)
+
+            # Build the full URL
+            if host:
+                url = f"http://{host}{url_path}"  # Assume HTTP scheme
+            else:
+                url = f"http://{ip_layer.dst}{url_path}"  # Fallback to IP if Host header is not available
+
+            self.log_http_request(request_line, url)
+
+            return f"HTTP Request: {request_line} | URL: {url}\n"
+
+    def extract_url(self, request_line):
+        """Extract URL from HTTP request."""
+        parts = request_line.split(' ')
+        if len(parts) > 1:
+            return parts[1]  # Extract URL (second part of the request line)
+        return "No URL Found"
+
+    def extract_host_header(self, payload):
+        """Extract the Host header from the HTTP request."""
+        lines = payload.splitlines()
+        for line in lines:
+            if line.lower().startswith("host:"):
+                # Return the host part of the Host header
+                return line.split(":")[1].strip()
+        return None  # Return None if Host header is not found
+
+    def log_http_request(self, request_line, url):
+        """Log HTTP request to the file with URL."""
+        logging.info(f"HTTP Request: {request_line} | URL: {url}")
+
+    def save_output(self):
+        """Saves the output to a file."""
+        try:
+            with open("sniffed_packets.txt", "w") as file:
+                file.write(self.output_text.get(1.0, tk.END))
+            self.output_text.insert(tk.END, "Output saved to sniffed_packets.txt\n")
+        except Exception as e:
+            self.output_text.insert(tk.END, f"Error saving output: {str(e)}\n")
