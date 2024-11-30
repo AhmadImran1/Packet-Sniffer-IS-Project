@@ -89,7 +89,7 @@ class PacketSnifferApp:
     
     def process_packet(self, ip_layer, transport_layer):
         """Process non-HTTP packets (TCP, UDP)."""
-        return f"Source: {ip_layer.src}, Destination: {ip_layer.dst}, Protocol: {transport_layer._class.name_}, Size: {len(transport_layer)}\n"
+        return f"Source: {ip_layer.src}, Destination: {ip_layer.dst}, Protocol: {transport_layer.__class__.__name__}, Size: {len(transport_layer)}\n"
 
     def process_http_packet(self, ip_layer, packet):
         """Process HTTP requests."""
