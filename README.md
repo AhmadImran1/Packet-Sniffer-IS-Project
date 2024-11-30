@@ -62,10 +62,3 @@ By gaining visibility into network traffic, this tool assists in detecting unusu
 3. Use the tool's interface or console commands to filter and monitor traffic.
 
 ---
-
-## Future Enhancements
-- Add support for saving captured packets to a file (e.g., PCAP format).  
-- Enhance filtering capabilities with custom query support.  
-- Integrate visualization tools for traffic patterns.
-
----
