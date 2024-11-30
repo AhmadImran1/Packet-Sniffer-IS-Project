@@ -50,7 +50,7 @@ class PacketSnifferApp:
         # Interface Selection Dropdown
         self.create_interface_dropdown()
 
-def create_interface_dropdown(self):
+    def create_interface_dropdown(self):
         """Creates a dropdown to select the network interface."""
         interfaces = self.get_active_interface()
         self.interface_label = tk.Label(self.master, text="Select Interface:")
@@ -91,7 +91,7 @@ def create_interface_dropdown(self):
         """Process non-HTTP packets (TCP, UDP)."""
         return f"Source: {ip_layer.src}, Destination: {ip_layer.dst}, Protocol: {transport_layer._class.name_}, Size: {len(transport_layer)}\n"
 
- def process_http_packet(self, ip_layer, packet):
+    def process_http_packet(self, ip_layer, packet):
         """Process HTTP requests."""
         payload = packet[Raw].load.decode(errors='ignore')
 
@@ -141,7 +141,7 @@ def create_interface_dropdown(self):
         except Exception as e:
             self.output_text.insert(tk.END, f"Error saving output: {str(e)}\n")
 
-def start_sniffing(self):
+    def start_sniffing(self):
         """Starts sniffing packets in a new thread."""
         self.selected_interface = self.interface_var.get()
         if self.selected_interface:
